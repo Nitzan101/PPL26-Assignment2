@@ -22,18 +22,19 @@ import { Sexp, Token } from "s-expression";
 ;; - The Let abbreviation is also supported.
 
 ;; <program> ::= (L3 <exp>+) // Program(exps:List(Exp))
-;; <exp> ::= <define> | <cexp>              / DefExp | CExp
-;; <define> ::= ( define <var> <cexp> )     / DefExp(var:VarDecl, val:CExp)
-;; <var> ::= <identifier>                   / VarRef(var:string)
-;; <cexp> ::= <number>                      / NumExp(val:number)
-;;         |  <boolean>                     / BoolExp(val:boolean)
-;;         |  <string>                      / StrExp(val:string)
-;;         |  ( lambda ( <var>* ) <cexp>+ ) / ProcExp(args:VarDecl[], body:CExp[]))
-;;         |  ( if <cexp> <cexp> <cexp> )   / IfExp(test: CExp, then: CExp, alt: CExp)
-;;         |  ( let ( binding* ) <cexp>+ )  / LetExp(bindings:Binding[], body:CExp[]))
-;;         |  ( quote <sexp> )              / LitExp(val:SExp)
-;;         |  ( <cexp> <cexp>* )            / AppExp(operator:CExp, operands:CExp[]))
-;; <binding>  ::= ( <var> <cexp> )           / Binding(var:VarDecl, val:Cexp)
+;; <exp> ::= <define> | <cexp>                      / DefExp | CExp
+;; <define> ::= ( define <var> <cexp> )             / DefExp(var:VarDecl, val:CExp)
+;; <var> ::= <identifier>                           / VarRef(var:string)
+;; <cexp> ::= <number>                              / NumExp(val:number)
+;;         |  <boolean>                             / BoolExp(val:boolean)
+;;         |  <string>                              / StrExp(val:string)
+;;         |  ( lambda ( <var>* ) <cexp>+ )         / ProcExp(args:VarDecl[], body:CExp[]))
+;;         |  ( class ( <var>+ ) ( <binding>+ ) )   / ClassExp(fields:VarDecl[], methods:Binding[]))
+;;         |  ( if <cexp> <cexp> <cexp> )           / IfExp(test: CExp, then: CExp, alt: CExp)
+;;         |  ( let ( binding* ) <cexp>+ )          / LetExp(bindings:Binding[], body:CExp[]))
+;;         |  ( quote <sexp> )                      / LitExp(val:SExp)
+;;         |  ( <cexp> <cexp>* )                    / AppExp(operator:CExp, operands:CExp[]))
+;; <binding>  ::= ( <var> <cexp> )                  / Binding(var:VarDecl, val:Cexp)
 ;; <prim-op>  ::= + | - | * | / | < | > | = | not |  and | or | eq? | string=?
 ;;                  | cons | car | cdr | pair? | number? | list 
 ;;                  | boolean? | symbol? | string?      ##### L3
@@ -66,6 +67,7 @@ export type Binding = {tag: "Binding"; var: VarDecl; val: CExp; }
 export type LetExp = {tag: "LetExp"; bindings: Binding[]; body: CExp[]; }
 // L3
 export type LitExp = {tag: "LitExp"; val: SExpValue; }
+export type ClassExp = {tag: "ClassExp"; fields: VarDecl[]; methods: Binding[]; } //Q2a
 
 // Type value constructors for disjoint types
 export const makeProgram = (exps: Exp[]): Program => ({tag: "Program", exps: exps});
@@ -92,6 +94,9 @@ export const makeLetExp = (bindings: Binding[], body: CExp[]): LetExp =>
 export const makeLitExp = (val: SExpValue): LitExp =>
     ({tag: "LitExp", val: val});
 
+export const makeClassExp = (fields: VarDecl[], methods: Binding[]): ClassExp => 
+    ({tag: "ClassExp", fields: fields, methods: methods}); //Q2a
+
 // Type predicates for disjoint types
 export const isProgram = (x: any): x is Program => x.tag === "Program";
 export const isDefineExp = (x: any): x is DefineExp => x.tag === "DefineExp";
@@ -110,6 +115,7 @@ export const isBinding = (x: any): x is Binding => x.tag === "Binding";
 export const isLetExp = (x: any): x is LetExp => x.tag === "LetExp";
 // L3
 export const isLitExp = (x: any): x is LitExp => x.tag === "LitExp";
+export const isClassExp = (x: any): x is LitExp => x.tag === "ClassExp"; //Q2a
 
 // Type predicates for type unions
 export const isExp = (x: any): x is Exp => isDefineExp(x) || isCExp(x);
