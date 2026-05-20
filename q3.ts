@@ -62,9 +62,11 @@ export const ifToPython = (exp: IfExp): Result<string> => {
 
 export const AppToPython = (exp: AppExp): Result<string> => {
     const ProcResult = l2ToPython(exp.rator);
-    const randsString = bind(mapResult(l2ToPython, exp.rands), (randsStrs: string[]) => makeOk(randsStrs.join(", ")));
+    const randsResult = bind(mapResult(l2ToPython, exp.rands), (randsStrs: string[]) => makeOk(randsStrs.join(", ")));
 
     return bind(ProcResult, (procStr: string) => 
-        makeOk(`${procStr} (${randsString})`)
+        bind(randsResult, (randsString : string) => 
+            makeOk(`${procStr}(${randsString})`)
+        )
     );
 }
