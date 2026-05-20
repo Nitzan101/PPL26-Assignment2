@@ -18,7 +18,6 @@ export const class2proc = (exp: ClassExp): ProcExp => {
 
         const methodVal = methods[0].val;
         
-        // Extract the body of the lambda since methods are assumed to be zero-parameter procedures
         const returnExp = isProcExp(methodVal) ? methodVal.body[0] : methodVal;
 
         return makeIfExp(
