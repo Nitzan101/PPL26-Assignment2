@@ -41,7 +41,7 @@ export const primOpToPython = (op: string): string => {
 };
 
 export const procToPython = (exp: ProcExp): Result<string> => {
-    const varsString = map((v: VarDecl) => v.var, exp.args).join(", ");
+    const varsString = map((v: VarDecl) => v.var, exp.args).join(",");
     return bind(l2ToPython(exp.body[0]), (bodyStr: string) => 
         makeOk(`(lambda ${varsString} : ${bodyStr})`)
     );
@@ -61,12 +61,28 @@ export const ifToPython = (exp: IfExp): Result<string> => {
 };
 
 export const AppToPython = (exp: AppExp): Result<string> => {
-    const ProcResult = l2ToPython(exp.rator);
-    const randsResult = bind(mapResult(l2ToPython, exp.rands), (randsStrs: string[]) => makeOk(randsStrs.join(", ")));
+    const ratorResult = l2ToPython(exp.rator);
+    const randsResult = mapResult(l2ToPython, exp.rands);
 
-    return bind(ProcResult, (procStr: string) => 
-        bind(randsResult, (randsString : string) => 
-            makeOk(`${procStr}(${randsString})`)
-        )
+    return bind(ratorResult, (ratorStr: string) => 
+        bind(randsResult, (randsStrs: string[]) => {
+            if (isPrimOp(exp.rator)) {
+                if (ratorStr === "not") {
+                    return makeOk(`(not ${randsStrs[0]})`);
+                }
+                
+                if (ratorStr === "-" && randsStrs.length === 1) {
+                    return makeOk(`(-${randsStrs[0]})`);
+                }
+                
+                const infixOps = ["+", "-", "*", "/", "<", ">", "==", "and", "or"];
+                if (infixOps.includes(ratorStr)) {
+                    return makeOk(`(${randsStrs.join(` ${ratorStr} `)})`);
+                }
+                
+            }
+            
+            return makeOk(`${ratorStr}(${randsStrs.join(",")})`);
+        })
     );
-}
+};
